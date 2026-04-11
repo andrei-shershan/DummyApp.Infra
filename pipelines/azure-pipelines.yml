@@ -1,0 +1,128 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - DummyApp.Infra/**
+
+pr: none
+
+variables:
+  TF_WORKING_DIR: '$(Build.SourcesDirectory)/DummyApp.Infra'
+
+stages:
+
+# ──────────────────────────────────────────────
+# TEST
+# ──────────────────────────────────────────────
+- stage: Terraform_Test
+  displayName: 'Terraform - Test'
+  jobs:
+  - deployment: Apply
+    displayName: 'terraform apply (test)'
+    environment: $(TEST_ENVIRONMENT_NAME)
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - task: TerraformInstaller@1
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: 'latest'
+
+          - task: TerraformTaskV4@4
+            displayName: 'terraform init'
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(TF_WORKING_DIR)'
+              backendServiceArm: '$(AZURE_SUBSCRIPTION)'
+              backendAzureRmResourceGroupName: '$(TF_BACKEND_RG)'
+              backendAzureRmStorageAccountName: '$(TF_BACKEND_SA)'
+              backendAzureRmContainerName: 'tfstate'
+              backendAzureRmKey: 'test.terraform.tfstate'
+
+          - script: terraform workspace select test || terraform workspace new test
+            displayName: 'Select workspace: test'
+            workingDirectory: '$(TF_WORKING_DIR)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'terraform plan'
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(TF_WORKING_DIR)'
+              commandOptions: '-var-file=envs/test.tfvars'
+              environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'terraform apply'
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(TF_WORKING_DIR)'
+              commandOptions: '-var-file=envs/test.tfvars -auto-approve'
+              environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
+
+# ──────────────────────────────────────────────
+# PROD
+# ──────────────────────────────────────────────
+- stage: Terraform_Prod
+  displayName: 'Terraform - Prod'
+  dependsOn: Terraform_Test
+  condition: succeeded()
+  jobs:
+  - deployment: Apply
+    displayName: 'terraform apply (prod)'
+    environment: $(PROD_ENVIRONMENT_NAME)
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - task: TerraformInstaller@1
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: 'latest'
+
+          - task: TerraformTaskV4@4
+            displayName: 'terraform init'
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(TF_WORKING_DIR)'
+              backendServiceArm: '$(AZURE_SUBSCRIPTION)'
+              backendAzureRmResourceGroupName: '$(TF_BACKEND_RG)'
+              backendAzureRmStorageAccountName: '$(TF_BACKEND_SA)'
+              backendAzureRmContainerName: 'tfstate'
+              backendAzureRmKey: 'prod.terraform.tfstate'
+
+          - script: terraform workspace select prod || terraform workspace new prod
+            displayName: 'Select workspace: prod'
+            workingDirectory: '$(TF_WORKING_DIR)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'terraform plan'
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(TF_WORKING_DIR)'
+              commandOptions: '-var-file=envs/prod.tfvars'
+              environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'terraform apply'
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(TF_WORKING_DIR)'
+              commandOptions: '-var-file=envs/prod.tfvars -auto-approve'
+              environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
