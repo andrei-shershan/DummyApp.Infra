@@ -10,12 +10,10 @@ pr: none
 
 variables:
   TF_WORKING_DIR: '$(Build.SourcesDirectory)/DummyApp.Infra'
+  TF_VERSION: '1.10.5'
 
 stages:
 
-# ──────────────────────────────────────────────
-# TEST
-# ──────────────────────────────────────────────
 - stage: Terraform_Test
   displayName: 'Terraform - Test'
   jobs:
@@ -30,48 +28,57 @@ stages:
           steps:
           - checkout: self
 
-          - task: TerraformInstaller@1
+          - script: |
+              wget -q https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
+              unzip -q terraform_$(TF_VERSION)_linux_amd64.zip
+              sudo mv terraform /usr/local/bin/
+              terraform version
             displayName: 'Install Terraform'
-            inputs:
-              terraformVersion: 'latest'
 
-          - task: TerraformTaskV4@4
+          - script: |
+              terraform init \
+                -backend-config="resource_group_name=$(TF_BACKEND_RG)" \
+                -backend-config="storage_account_name=$(TF_BACKEND_SA)" \
+                -backend-config="container_name=tfstate" \
+                -backend-config="key=test.terraform.tfstate"
             displayName: 'terraform init'
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(TF_WORKING_DIR)'
-              backendServiceArm: '$(AZURE_SUBSCRIPTION)'
-              backendAzureRmResourceGroupName: '$(TF_BACKEND_RG)'
-              backendAzureRmStorageAccountName: '$(TF_BACKEND_SA)'
-              backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: 'test.terraform.tfstate'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-          - script: terraform workspace select test || terraform workspace new test
+          - script: |
+              terraform workspace select test || terraform workspace new test
             displayName: 'Select workspace: test'
             workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-          - task: TerraformTaskV4@4
+          - script: |
+              terraform plan -var-file=envs/test.tfvars
             displayName: 'terraform plan'
-            inputs:
-              provider: 'azurerm'
-              command: 'plan'
-              workingDirectory: '$(TF_WORKING_DIR)'
-              commandOptions: '-var-file=envs/test.tfvars'
-              environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-          - task: TerraformTaskV4@4
+          - script: |
+              terraform apply -var-file=envs/test.tfvars -auto-approve
             displayName: 'terraform apply'
-            inputs:
-              provider: 'azurerm'
-              command: 'apply'
-              workingDirectory: '$(TF_WORKING_DIR)'
-              commandOptions: '-var-file=envs/test.tfvars -auto-approve'
-              environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-# ──────────────────────────────────────────────
-# PROD
-# ──────────────────────────────────────────────
 - stage: Terraform_Prod
   displayName: 'Terraform - Prod'
   dependsOn: Terraform_Test
@@ -88,41 +95,53 @@ stages:
           steps:
           - checkout: self
 
-          - task: TerraformInstaller@1
+          - script: |
+              wget -q https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
+              unzip -q terraform_$(TF_VERSION)_linux_amd64.zip
+              sudo mv terraform /usr/local/bin/
+              terraform version
             displayName: 'Install Terraform'
-            inputs:
-              terraformVersion: 'latest'
 
-          - task: TerraformTaskV4@4
+          - script: |
+              terraform init \
+                -backend-config="resource_group_name=$(TF_BACKEND_RG)" \
+                -backend-config="storage_account_name=$(TF_BACKEND_SA)" \
+                -backend-config="container_name=tfstate" \
+                -backend-config="key=prod.terraform.tfstate"
             displayName: 'terraform init'
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(TF_WORKING_DIR)'
-              backendServiceArm: '$(AZURE_SUBSCRIPTION)'
-              backendAzureRmResourceGroupName: '$(TF_BACKEND_RG)'
-              backendAzureRmStorageAccountName: '$(TF_BACKEND_SA)'
-              backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: 'prod.terraform.tfstate'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-          - script: terraform workspace select prod || terraform workspace new prod
+          - script: |
+              terraform workspace select prod || terraform workspace new prod
             displayName: 'Select workspace: prod'
             workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-          - task: TerraformTaskV4@4
+          - script: |
+              terraform plan -var-file=envs/prod.tfvars
             displayName: 'terraform plan'
-            inputs:
-              provider: 'azurerm'
-              command: 'plan'
-              workingDirectory: '$(TF_WORKING_DIR)'
-              commandOptions: '-var-file=envs/prod.tfvars'
-              environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-          - task: TerraformTaskV4@4
+          - script: |
+              terraform apply -var-file=envs/prod.tfvars -auto-approve
             displayName: 'terraform apply'
-            inputs:
-              provider: 'azurerm'
-              command: 'apply'
-              workingDirectory: '$(TF_WORKING_DIR)'
-              commandOptions: '-var-file=envs/prod.tfvars -auto-approve'
-              environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
