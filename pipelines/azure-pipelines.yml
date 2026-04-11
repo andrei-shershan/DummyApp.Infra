@@ -9,7 +9,7 @@ trigger:
 pr: none
 
 variables:
-  TF_WORKING_DIR: '$(Build.SourcesDirectory)/DummyApp.Infra'
+  TF_WORKING_DIR: '$(Pipeline.Workspace)/s/DummyApp.Infra'
   TF_VERSION: '1.10.5'
 
 stages:
