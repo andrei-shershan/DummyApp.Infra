@@ -13,5 +13,5 @@ variable "app_service_plan_sku" {
 variable "node_version" {
   type        = string
   description = "Node.js version for the App Service runtime"
-  default     = "NODE|24-lts"
+  default     = "24-lts"
 }

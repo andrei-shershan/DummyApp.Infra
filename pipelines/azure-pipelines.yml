@@ -14,12 +14,242 @@ variables:
 
 stages:
 
-- stage: Terraform_Test
-  displayName: 'Terraform - Test'
+# ── TEST: Plan ────────────────────────────────
+- stage: Plan_Test
+  displayName: 'Plan - Test'
+  jobs:
+  - job: Plan
+    displayName: 'terraform plan (test)'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+
+    - script: |
+        wget -q https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
+        unzip -q terraform_$(TF_VERSION)_linux_amd64.zip
+        sudo mv terraform /usr/local/bin/
+        terraform version
+      displayName: 'Install Terraform'
+
+    - script: |
+        terraform init \
+          -backend-config="resource_group_name=$(TF_BACKEND_RG)" \
+          -backend-config="storage_account_name=$(TF_BACKEND_SA)" \
+          -backend-config="container_name=tfstate" \
+          -backend-config="key=test.terraform.tfstate"
+      displayName: 'terraform init'
+      workingDirectory: '$(TF_WORKING_DIR)'
+      env:
+        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+        ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+        ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+    - script: |
+        terraform workspace select test || terraform workspace new test
+      displayName: 'Select workspace: test'
+      workingDirectory: '$(TF_WORKING_DIR)'
+      env:
+        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+        ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+        ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+    - script: |
+        terraform plan -var-file=envs/test.tfvars -out=tfplan-test
+      displayName: 'terraform plan'
+      workingDirectory: '$(TF_WORKING_DIR)'
+      env:
+        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+        ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+        ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+    - publish: '$(TF_WORKING_DIR)/tfplan-test'
+      artifact: tfplan-test
+      displayName: 'Publish plan artifact'
+
+# ── TEST: Apply ───────────────────────────────
+- stage: Apply_Test
+  displayName: 'Apply - Test'
+  dependsOn: Plan_Test
+  condition: succeeded()
   jobs:
   - deployment: Apply
     displayName: 'terraform apply (test)'
     environment: $(TEST_ENVIRONMENT_NAME)
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - script: |
+              wget -q https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
+              unzip -q terraform_$(TF_VERSION)_linux_amd64.zip
+              sudo mv terraform /usr/local/bin/
+              terraform version
+            displayName: 'Install Terraform'
+
+          - script: |
+              terraform init \
+                -backend-config="resource_group_name=$(TF_BACKEND_RG)" \
+                -backend-config="storage_account_name=$(TF_BACKEND_SA)" \
+                -backend-config="container_name=tfstate" \
+                -backend-config="key=test.terraform.tfstate"
+            displayName: 'terraform init'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+          - script: |
+              terraform workspace select test || terraform workspace new test
+            displayName: 'Select workspace: test'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+          - download: current
+            artifact: tfplan-test
+
+          - script: |
+              terraform apply -auto-approve $(Pipeline.Workspace)/tfplan-test/tfplan-test
+            displayName: 'terraform apply'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+# ── PROD: Plan ────────────────────────────────
+- stage: Plan_Prod
+  displayName: 'Plan - Prod'
+  dependsOn: Apply_Test
+  condition: succeeded()
+  jobs:
+  - job: Plan
+    displayName: 'terraform plan (prod)'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+
+    - script: |
+        wget -q https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
+        unzip -q terraform_$(TF_VERSION)_linux_amd64.zip
+        sudo mv terraform /usr/local/bin/
+        terraform version
+      displayName: 'Install Terraform'
+
+    - script: |
+        terraform init \
+          -backend-config="resource_group_name=$(TF_BACKEND_RG)" \
+          -backend-config="storage_account_name=$(TF_BACKEND_SA)" \
+          -backend-config="container_name=tfstate" \
+          -backend-config="key=prod.terraform.tfstate"
+      displayName: 'terraform init'
+      workingDirectory: '$(TF_WORKING_DIR)'
+      env:
+        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+        ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+        ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+    - script: |
+        terraform workspace select prod || terraform workspace new prod
+      displayName: 'Select workspace: prod'
+      workingDirectory: '$(TF_WORKING_DIR)'
+      env:
+        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+        ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+        ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+    - script: |
+        terraform plan -var-file=envs/prod.tfvars -out=tfplan-prod
+      displayName: 'terraform plan'
+      workingDirectory: '$(TF_WORKING_DIR)'
+      env:
+        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+        ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+        ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+    - publish: '$(TF_WORKING_DIR)/tfplan-prod'
+      artifact: tfplan-prod
+      displayName: 'Publish plan artifact'
+
+# ── PROD: Apply ───────────────────────────────
+- stage: Apply_Prod
+  displayName: 'Apply - Prod'
+  dependsOn: Plan_Prod
+  condition: succeeded()
+  jobs:
+  - deployment: Apply
+    displayName: 'terraform apply (prod)'
+    environment: $(PROD_ENVIRONMENT_NAME)
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - script: |
+              wget -q https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
+              unzip -q terraform_$(TF_VERSION)_linux_amd64.zip
+              sudo mv terraform /usr/local/bin/
+              terraform version
+            displayName: 'Install Terraform'
+
+          - script: |
+              terraform init \
+                -backend-config="resource_group_name=$(TF_BACKEND_RG)" \
+                -backend-config="storage_account_name=$(TF_BACKEND_SA)" \
+                -backend-config="container_name=tfstate" \
+                -backend-config="key=prod.terraform.tfstate"
+            displayName: 'terraform init'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+          - script: |
+              terraform workspace select prod || terraform workspace new prod
+            displayName: 'Select workspace: prod'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+          - download: current
+            artifact: tfplan-prod
+
+          - script: |
+              terraform apply -auto-approve $(Pipeline.Workspace)/tfplan-prod/tfplan-prod
+            displayName: 'terraform apply'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
