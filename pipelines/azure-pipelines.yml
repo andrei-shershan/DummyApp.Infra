@@ -57,7 +57,7 @@ stages:
         ARM_TENANT_ID: $(ARM_TENANT_ID)
 
     - script: |
-        terraform plan -var-file=envs/test.tfvars -out=tfplan-test
+        terraform plan -var-file=envs/test.tfvars
       displayName: 'terraform plan'
       workingDirectory: '$(TF_WORKING_DIR)'
       env:
@@ -65,10 +65,6 @@ stages:
         ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
         ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
         ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-    - publish: '$(TF_WORKING_DIR)/tfplan-test'
-      artifact: tfplan-test
-      displayName: 'Publish plan artifact'
 
 # ── TEST: Apply ───────────────────────────────
 - stage: Apply_Test
@@ -173,7 +169,7 @@ stages:
         ARM_TENANT_ID: $(ARM_TENANT_ID)
 
     - script: |
-        terraform plan -var-file=envs/prod.tfvars -out=tfplan-prod
+        terraform plan -var-file=envs/prod.tfvars
       displayName: 'terraform plan'
       workingDirectory: '$(TF_WORKING_DIR)'
       env:
@@ -181,10 +177,6 @@ stages:
         ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
         ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
         ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-    - publish: '$(TF_WORKING_DIR)/tfplan-prod'
-      artifact: tfplan-prod
-      displayName: 'Publish plan artifact'
 
 # ── PROD: Apply ───────────────────────────────
 - stage: Apply_Prod
