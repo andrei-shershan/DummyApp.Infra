@@ -69,84 +69,84 @@ resource "azurerm_linux_web_app" "bff" {
 
 # ── Gateway ──────────────────────────────────────────────────────────────────
 
-resource "azurerm_service_plan" "gateway" {
-  name                = "asp-${local.prefix}-gateway"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  os_type             = "Linux"
-  sku_name            = "F1"
-}
+# resource "azurerm_service_plan" "gateway" {
+#   name                = "asp-${local.prefix}-gateway"
+#   resource_group_name = azurerm_resource_group.main.name
+#   location            = azurerm_resource_group.main.location
+#   os_type             = "Linux"
+#   sku_name            = "F1"
+# }
 
-resource "azurerm_linux_web_app" "gateway" {
-  name                = "app-${local.prefix}-gateway"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  service_plan_id     = azurerm_service_plan.gateway.id
-  https_only          = true
+# resource "azurerm_linux_web_app" "gateway" {
+#   name                = "app-${local.prefix}-gateway"
+#   resource_group_name = azurerm_resource_group.main.name
+#   location            = azurerm_resource_group.main.location
+#   service_plan_id     = azurerm_service_plan.gateway.id
+#   https_only          = true
 
-  site_config {
-    always_on = false
+#   site_config {
+#     always_on = false
 
-    application_stack {
-      dotnet_version = var.dotnet_version
-    }
-  }
+#     application_stack {
+#       dotnet_version = var.dotnet_version
+#     }
+#   }
 
-  client_affinity_enabled = false
-}
+#   client_affinity_enabled = false
+# }
 
 # ── Identity ─────────────────────────────────────────────────────────────────
 
-resource "azurerm_service_plan" "identity" {
-  name                = "asp-${local.prefix}-identity"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  os_type             = "Linux"
-  sku_name            = "F1"
-}
+# resource "azurerm_service_plan" "identity" {
+#   name                = "asp-${local.prefix}-identity"
+#   resource_group_name = azurerm_resource_group.main.name
+#   location            = azurerm_resource_group.main.location
+#   os_type             = "Linux"
+#   sku_name            = "F1"
+# }
 
-resource "azurerm_linux_web_app" "identity" {
-  name                = "app-${local.prefix}-identity"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  service_plan_id     = azurerm_service_plan.identity.id
-  https_only          = true
+# resource "azurerm_linux_web_app" "identity" {
+#   name                = "app-${local.prefix}-identity"
+#   resource_group_name = azurerm_resource_group.main.name
+#   location            = azurerm_resource_group.main.location
+#   service_plan_id     = azurerm_service_plan.identity.id
+#   https_only          = true
 
-  site_config {
-    always_on = false
+#   site_config {
+#     always_on = false
 
-    application_stack {
-      dotnet_version = var.dotnet_version
-    }
-  }
+#     application_stack {
+#       dotnet_version = var.dotnet_version
+#     }
+#   }
 
-  client_affinity_enabled = false
-}
+#   client_affinity_enabled = false
+# }
 
 # ── Storage Service ───────────────────────────────────────────────────────────
 
-resource "azurerm_service_plan" "storage" {
-  name                = "asp-${local.prefix}-storage"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  os_type             = "Linux"
-  sku_name            = "F1"
-}
+# resource "azurerm_service_plan" "storage" {
+#   name                = "asp-${local.prefix}-storage"
+#   resource_group_name = azurerm_resource_group.main.name
+#   location            = azurerm_resource_group.main.location
+#   os_type             = "Linux"
+#   sku_name            = "F1"
+# }
 
-resource "azurerm_linux_web_app" "storage" {
-  name                = "app-${local.prefix}-storage"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  service_plan_id     = azurerm_service_plan.storage.id
-  https_only          = true
+# resource "azurerm_linux_web_app" "storage" {
+#   name                = "app-${local.prefix}-storage"
+#   resource_group_name = azurerm_resource_group.main.name
+#   location            = azurerm_resource_group.main.location
+#   service_plan_id     = azurerm_service_plan.storage.id
+#   https_only          = true
 
-  site_config {
-    always_on = false
+#   site_config {
+#     always_on = false
 
-    application_stack {
-      dotnet_version = var.dotnet_version
-    }
-  }
+#     application_stack {
+#       dotnet_version = var.dotnet_version
+#     }
+#   }
 
-  client_affinity_enabled = false
-}
+#   client_affinity_enabled = false
+# }
