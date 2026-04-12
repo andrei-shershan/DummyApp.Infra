@@ -130,11 +130,20 @@ stages:
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-          - download: current
-            artifact: tfplan-test
+          - script: |
+              terraform state show azurerm_resource_group.main 2>/dev/null || \
+                terraform import azurerm_resource_group.main \
+                  /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/rg-dummyapp-test
+            displayName: 'Import existing resource group (test)'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
           - script: |
-              terraform apply -auto-approve $(Pipeline.Workspace)/tfplan-test/tfplan-test
+              terraform apply -auto-approve -var-file=envs/test.tfvars
             displayName: 'terraform apply'
             workingDirectory: '$(TF_WORKING_DIR)'
             env:
@@ -261,11 +270,20 @@ stages:
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-          - download: current
-            artifact: tfplan-prod
+          - script: |
+              terraform state show azurerm_resource_group.main 2>/dev/null || \
+                terraform import azurerm_resource_group.main \
+                  /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/rg-dummyapp-prod
+            displayName: 'Import existing resource group (prod)'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 
           - script: |
-              terraform apply -auto-approve $(Pipeline.Workspace)/tfplan-prod/tfplan-prod
+              terraform apply -auto-approve -var-file=envs/prod.tfvars
             displayName: 'terraform apply'
             workingDirectory: '$(TF_WORKING_DIR)'
             env:
