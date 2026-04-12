@@ -57,18 +57,6 @@ stages:
         ARM_TENANT_ID: $(ARM_TENANT_ID)
 
     - script: |
-        terraform state show azurerm_resource_group.main 2>/dev/null || \
-          terraform import azurerm_resource_group.main \
-            /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/rg-dummyapp-test
-      displayName: 'Import existing resource group (test)'
-      workingDirectory: '$(TF_WORKING_DIR)'
-      env:
-        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-        ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-        ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-    - script: |
         terraform plan -var-file=envs/test.tfvars -out=tfplan-test
       displayName: 'terraform plan'
       workingDirectory: '$(TF_WORKING_DIR)'
@@ -131,18 +119,6 @@ stages:
               ARM_TENANT_ID: $(ARM_TENANT_ID)
 
           - script: |
-              terraform state show azurerm_resource_group.main 2>/dev/null || \
-                terraform import azurerm_resource_group.main \
-                  /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/rg-dummyapp-test
-            displayName: 'Import existing resource group (test)'
-            workingDirectory: '$(TF_WORKING_DIR)'
-            env:
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-          - script: |
               terraform apply -auto-approve -var-file=envs/test.tfvars
             displayName: 'terraform apply'
             workingDirectory: '$(TF_WORKING_DIR)'
@@ -189,18 +165,6 @@ stages:
     - script: |
         terraform workspace select prod || terraform workspace new prod
       displayName: 'Select workspace: prod'
-      workingDirectory: '$(TF_WORKING_DIR)'
-      env:
-        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-        ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-        ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-    - script: |
-        terraform state show azurerm_resource_group.main 2>/dev/null || \
-          terraform import azurerm_resource_group.main \
-            /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/rg-dummyapp-prod
-      displayName: 'Import existing resource group (prod)'
       workingDirectory: '$(TF_WORKING_DIR)'
       env:
         ARM_CLIENT_ID: $(ARM_CLIENT_ID)
@@ -263,18 +227,6 @@ stages:
           - script: |
               terraform workspace select prod || terraform workspace new prod
             displayName: 'Select workspace: prod'
-            workingDirectory: '$(TF_WORKING_DIR)'
-            env:
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-          - script: |
-              terraform state show azurerm_resource_group.main 2>/dev/null || \
-                terraform import azurerm_resource_group.main \
-                  /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/rg-dummyapp-prod
-            displayName: 'Import existing resource group (prod)'
             workingDirectory: '$(TF_WORKING_DIR)'
             env:
               ARM_CLIENT_ID: $(ARM_CLIENT_ID)
