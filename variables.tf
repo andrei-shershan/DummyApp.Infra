@@ -15,3 +15,9 @@ variable "node_version" {
   description = "Node.js version for the App Service runtime"
   default     = "24-lts"
 }
+
+variable "dotnet_version" {
+  type        = string
+  description = ".NET version for App Service runtime"
+  default     = "10.0"
+}
