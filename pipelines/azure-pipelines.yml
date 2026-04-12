@@ -57,19 +57,7 @@ stages:
         ARM_TENANT_ID: $(ARM_TENANT_ID)
 
     - script: |
-        terraform state show azurerm_resource_group.main 2>/dev/null || \
-          terraform import azurerm_resource_group.main \
-            /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/rg-dummyapp-test
-      displayName: 'Import existing resource group (test)'
-      workingDirectory: '$(TF_WORKING_DIR)'
-      env:
-        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-        ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-        ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-    - script: |
-        terraform plan -var-file=envs/test.tfvars -out=tfplan-test
+        terraform plan -var-file=envs/test.tfvars
       displayName: 'terraform plan'
       workingDirectory: '$(TF_WORKING_DIR)'
       env:
@@ -77,10 +65,6 @@ stages:
         ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
         ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
         ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-    - publish: '$(TF_WORKING_DIR)/tfplan-test'
-      artifact: tfplan-test
-      displayName: 'Publish plan artifact'
 
 # ── TEST: Apply ───────────────────────────────
 - stage: Apply_Test
@@ -123,18 +107,6 @@ stages:
           - script: |
               terraform workspace select test || terraform workspace new test
             displayName: 'Select workspace: test'
-            workingDirectory: '$(TF_WORKING_DIR)'
-            env:
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-          - script: |
-              terraform state show azurerm_resource_group.main 2>/dev/null || \
-                terraform import azurerm_resource_group.main \
-                  /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/rg-dummyapp-test
-            displayName: 'Import existing resource group (test)'
             workingDirectory: '$(TF_WORKING_DIR)'
             env:
               ARM_CLIENT_ID: $(ARM_CLIENT_ID)
@@ -197,19 +169,7 @@ stages:
         ARM_TENANT_ID: $(ARM_TENANT_ID)
 
     - script: |
-        terraform state show azurerm_resource_group.main 2>/dev/null || \
-          terraform import azurerm_resource_group.main \
-            /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/rg-dummyapp-prod
-      displayName: 'Import existing resource group (prod)'
-      workingDirectory: '$(TF_WORKING_DIR)'
-      env:
-        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-        ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-        ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-    - script: |
-        terraform plan -var-file=envs/prod.tfvars -out=tfplan-prod
+        terraform plan -var-file=envs/prod.tfvars
       displayName: 'terraform plan'
       workingDirectory: '$(TF_WORKING_DIR)'
       env:
@@ -217,10 +177,6 @@ stages:
         ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
         ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
         ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-    - publish: '$(TF_WORKING_DIR)/tfplan-prod'
-      artifact: tfplan-prod
-      displayName: 'Publish plan artifact'
 
 # ── PROD: Apply ───────────────────────────────
 - stage: Apply_Prod
@@ -263,18 +219,6 @@ stages:
           - script: |
               terraform workspace select prod || terraform workspace new prod
             displayName: 'Select workspace: prod'
-            workingDirectory: '$(TF_WORKING_DIR)'
-            env:
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-          - script: |
-              terraform state show azurerm_resource_group.main 2>/dev/null || \
-                terraform import azurerm_resource_group.main \
-                  /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/rg-dummyapp-prod
-            displayName: 'Import existing resource group (prod)'
             workingDirectory: '$(TF_WORKING_DIR)'
             env:
               ARM_CLIENT_ID: $(ARM_CLIENT_ID)
