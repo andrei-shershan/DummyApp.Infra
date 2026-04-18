@@ -39,6 +39,10 @@ resource "azurerm_linux_web_app" "frontend" {
     WEBSITE_NODE_DEFAULT_VERSION   = "~24"
     SCM_DO_BUILD_DURING_DEPLOYMENT = "false"
   }
+
+  lifecycle {
+    ignore_changes = [app_settings]
+  }
 }
 
 # ── BFF ──────────────────────────────────────────────────────────────────────
@@ -67,6 +71,10 @@ resource "azurerm_linux_web_app" "bff" {
   }
 
   client_affinity_enabled = false
+
+  lifecycle {
+    ignore_changes = [app_settings]
+  }
 }
 
 # ── Gateway ──────────────────────────────────────────────────────────────────
@@ -95,6 +103,10 @@ resource "azurerm_linux_web_app" "gateway" {
   }
 
   client_affinity_enabled = false
+
+  lifecycle {
+    ignore_changes = [app_settings]
+  }
 }
 
 # ── Identity ─────────────────────────────────────────────────────────────────
@@ -123,6 +135,10 @@ resource "azurerm_linux_web_app" "identity" {
   }
 
   client_affinity_enabled = false
+
+  lifecycle {
+    ignore_changes = [app_settings]
+  }
 }
 
 # ── Storage Service ───────────────────────────────────────────────────────────
@@ -151,6 +167,10 @@ resource "azurerm_linux_web_app" "storage" {
   }
 
   client_affinity_enabled = false
+
+  lifecycle {
+    ignore_changes = [app_settings]
+  }
 }
 
 # ── Key Vault ─────────────────────────────────────────────────────────────────
