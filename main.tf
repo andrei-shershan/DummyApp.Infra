@@ -26,7 +26,8 @@ resource "azurerm_linux_web_app" "frontend" {
   https_only          = true
 
   site_config {
-    always_on = var.app_service_plan_sku != "F1"
+    always_on        = var.app_service_plan_sku != "F1"
+    app_command_line = "pm2 serve /home/site/wwwroot --no-daemon --spa"
 
     application_stack {
       node_version = var.node_version
