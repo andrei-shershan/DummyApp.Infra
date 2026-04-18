@@ -52,3 +52,13 @@ output "bff_name" {
 #   description = "Name of the Storage Service App Service instance"
 #   value       = azurerm_linux_web_app.storage.name
 # }
+
+output "key_vault_uri" {
+  description = "URI of the Key Vault"
+  value       = azurerm_key_vault.main.vault_uri
+}
+
+output "key_vault_name" {
+  description = "Name of the Key Vault"
+  value       = azurerm_key_vault.main.name
+}

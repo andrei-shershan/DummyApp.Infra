@@ -3,6 +3,8 @@ locals {
   prefix = "dummyapp-${local.env}"
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "main" {
   name     = "rg-${local.prefix}"
   location = var.location
@@ -149,4 +151,16 @@ resource "azurerm_linux_web_app" "storage" {
   }
 
   client_affinity_enabled = false
+}
+
+# ── Key Vault ─────────────────────────────────────────────────────────────────
+
+resource "azurerm_key_vault" "main" {
+  name                       = "kv-${local.prefix}"
+  resource_group_name        = azurerm_resource_group.main.name
+  location                   = azurerm_resource_group.main.location
+  sku_name                   = "standard"
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
 }
