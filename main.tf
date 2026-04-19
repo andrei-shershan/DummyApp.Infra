@@ -95,6 +95,10 @@ resource "azurerm_linux_web_app" "gateway" {
   service_plan_id     = azurerm_service_plan.gateway.id
   https_only          = true
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   site_config {
     always_on = false
 
@@ -184,4 +188,24 @@ resource "azurerm_key_vault" "main" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days = 7
   purge_protection_enabled   = false
+  enable_rbac_authorization  = true
+}
+
+# Grant the ApiGateway managed identity read access to Key Vault secrets
+resource "azurerm_role_assignment" "gateway_kv_secrets_user" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_linux_web_app.gateway.identity[0].principal_id
+}
+
+# Grant write access to manage secrets manually (Portal / CLI).
+# Defaults to the Terraform principal; override via kv_admin_object_id variable.
+locals {
+  kv_admin_object_id = var.kv_admin_object_id != "" ? var.kv_admin_object_id : data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "kv_secrets_officer" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets Officer"
+  principal_id         = local.kv_admin_object_id
 }

@@ -21,3 +21,9 @@ variable "dotnet_version" {
   description = ".NET version for App Service runtime"
   default     = "10.0"
 }
+
+variable "kv_admin_object_id" {
+  type        = string
+  description = "Object ID of the user or group that can manage Key Vault secrets manually (e.g. add/update secrets via Portal or CLI). Defaults to the Terraform principal."
+  default     = ""
+}
