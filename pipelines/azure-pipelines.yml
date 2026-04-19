@@ -125,6 +125,11 @@ stages:
               ARM_TENANT_ID: $(ARM_TENANT_ID)
 
           - script: |
+              az login --service-principal \
+                -u $(ARM_CLIENT_ID) -p $(ARM_CLIENT_SECRET) \
+                --tenant $(ARM_TENANT_ID) --output none
+              az account set --subscription $(ARM_SUBSCRIPTION_ID)
+
               KV_URL=$(terraform output -raw key_vault_uri)
               RG=$(terraform output -raw resource_group_name)
               GW=$(terraform output -raw gateway_name)
@@ -143,10 +148,6 @@ stages:
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
-              AZURE_CLIENT_ID: $(ARM_CLIENT_ID)
-              AZURE_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              AZURE_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              AZURE_TENANT_ID: $(ARM_TENANT_ID)
 
 # ── PROD: Plan ────────────────────────────────
 - stage: Plan_Prod
@@ -261,6 +262,11 @@ stages:
               ARM_TENANT_ID: $(ARM_TENANT_ID)
 
           - script: |
+              az login --service-principal \
+                -u $(ARM_CLIENT_ID) -p $(ARM_CLIENT_SECRET) \
+                --tenant $(ARM_TENANT_ID) --output none
+              az account set --subscription $(ARM_SUBSCRIPTION_ID)
+
               KV_URL=$(terraform output -raw key_vault_uri)
               RG=$(terraform output -raw resource_group_name)
               GW=$(terraform output -raw gateway_name)
@@ -279,8 +285,4 @@ stages:
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
-              AZURE_CLIENT_ID: $(ARM_CLIENT_ID)
-              AZURE_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              AZURE_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              AZURE_TENANT_ID: $(ARM_TENANT_ID)
 
