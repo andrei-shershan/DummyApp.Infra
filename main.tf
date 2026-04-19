@@ -63,6 +63,19 @@ resource "azurerm_linux_web_app" "bff" {
   service_plan_id     = azurerm_service_plan.bff.id
   https_only          = true
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.bff.id]
+  }
+
+  app_settings = {
+    KeyVault__Url = azurerm_key_vault.main.vault_uri
+  }
+
+  lifecycle {
+    ignore_changes = [app_settings]
+  }
+
   site_config {
     always_on = false
 
@@ -72,10 +85,6 @@ resource "azurerm_linux_web_app" "bff" {
   }
 
   client_affinity_enabled = false
-
-  lifecycle {
-    ignore_changes = [app_settings]
-  }
 }
 
 # ── Gateway ──────────────────────────────────────────────────────────────────
@@ -94,6 +103,24 @@ resource "azurerm_user_assigned_identity" "gateway" {
   location            = azurerm_resource_group.main.location
 }
 
+resource "azurerm_user_assigned_identity" "bff" {
+  name                = "id-${local.prefix}-bff"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+resource "azurerm_user_assigned_identity" "identity" {
+  name                = "id-${local.prefix}-identity"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+resource "azurerm_user_assigned_identity" "storage" {
+  name                = "id-${local.prefix}-storage"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
 resource "azurerm_linux_web_app" "gateway" {
   name                = "app-${local.prefix}-gateway"
   resource_group_name = azurerm_resource_group.main.name
@@ -106,6 +133,14 @@ resource "azurerm_linux_web_app" "gateway" {
     identity_ids = [azurerm_user_assigned_identity.gateway.id]
   }
 
+  app_settings = {
+    KeyVault__Url = azurerm_key_vault.main.vault_uri
+  }
+
+  lifecycle {
+    ignore_changes = [app_settings]
+  }
+
   site_config {
     always_on = false
 
@@ -115,10 +150,6 @@ resource "azurerm_linux_web_app" "gateway" {
   }
 
   client_affinity_enabled = false
-
-  lifecycle {
-    ignore_changes = [app_settings]
-  }
 }
 
 # ── Identity ─────────────────────────────────────────────────────────────────
@@ -138,6 +169,19 @@ resource "azurerm_linux_web_app" "identity" {
   service_plan_id     = azurerm_service_plan.identity.id
   https_only          = true
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.identity.id]
+  }
+
+  app_settings = {
+    KeyVault__Url = azurerm_key_vault.main.vault_uri
+  }
+
+  lifecycle {
+    ignore_changes = [app_settings]
+  }
+
   site_config {
     always_on = false
 
@@ -147,10 +191,6 @@ resource "azurerm_linux_web_app" "identity" {
   }
 
   client_affinity_enabled = false
-
-  lifecycle {
-    ignore_changes = [app_settings]
-  }
 }
 
 # ── Storage Service ───────────────────────────────────────────────────────────
@@ -170,6 +210,19 @@ resource "azurerm_linux_web_app" "storage" {
   service_plan_id     = azurerm_service_plan.storage.id
   https_only          = true
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.storage.id]
+  }
+
+  app_settings = {
+    KeyVault__Url = azurerm_key_vault.main.vault_uri
+  }
+
+  lifecycle {
+    ignore_changes = [app_settings]
+  }
+
   site_config {
     always_on = false
 
@@ -179,10 +232,6 @@ resource "azurerm_linux_web_app" "storage" {
   }
 
   client_affinity_enabled = false
-
-  lifecycle {
-    ignore_changes = [app_settings]
-  }
 }
 
 # ── Key Vault ─────────────────────────────────────────────────────────────────
@@ -203,6 +252,24 @@ resource "azurerm_role_assignment" "gateway_kv_secrets_user" {
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_user_assigned_identity.gateway.principal_id
+}
+
+resource "azurerm_role_assignment" "bff_kv_secrets_user" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.bff.principal_id
+}
+
+resource "azurerm_role_assignment" "identity_kv_secrets_user" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.identity.principal_id
+}
+
+resource "azurerm_role_assignment" "storage_kv_secrets_user" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.storage.principal_id
 }
 
 # Grant write access to manage secrets manually (Portal / CLI).

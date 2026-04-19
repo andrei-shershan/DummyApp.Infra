@@ -124,31 +124,6 @@ stages:
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-          - script: |
-              az login --service-principal \
-                -u $(ARM_CLIENT_ID) -p $(ARM_CLIENT_SECRET) \
-                --tenant $(ARM_TENANT_ID) --output none
-              az account set --subscription $(ARM_SUBSCRIPTION_ID)
-
-              KV_URL=$(terraform output -raw key_vault_uri)
-              RG=$(terraform output -raw resource_group_name)
-              GW=$(terraform output -raw gateway_name)
-              GW_CLIENT_ID=$(terraform output -raw gateway_identity_client_id)
-
-              az webapp config appsettings set \
-                --resource-group "$RG" \
-                --name "$GW" \
-                --settings \
-                  KeyVault__Url="$KV_URL" \
-                  AZURE_CLIENT_ID="$GW_CLIENT_ID"
-            displayName: 'Configure gateway app settings (test)'
-            workingDirectory: '$(TF_WORKING_DIR)'
-            env:
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-
 # ── PROD: Plan ────────────────────────────────
 - stage: Plan_Prod
   displayName: 'Plan - Prod'
@@ -261,28 +236,4 @@ stages:
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-          - script: |
-              az login --service-principal \
-                -u $(ARM_CLIENT_ID) -p $(ARM_CLIENT_SECRET) \
-                --tenant $(ARM_TENANT_ID) --output none
-              az account set --subscription $(ARM_SUBSCRIPTION_ID)
-
-              KV_URL=$(terraform output -raw key_vault_uri)
-              RG=$(terraform output -raw resource_group_name)
-              GW=$(terraform output -raw gateway_name)
-              GW_CLIENT_ID=$(terraform output -raw gateway_identity_client_id)
-
-              az webapp config appsettings set \
-                --resource-group "$RG" \
-                --name "$GW" \
-                --settings \
-                  KeyVault__Url="$KV_URL" \
-                  AZURE_CLIENT_ID="$GW_CLIENT_ID"
-            displayName: 'Configure gateway app settings (prod)'
-            workingDirectory: '$(TF_WORKING_DIR)'
-            env:
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
 

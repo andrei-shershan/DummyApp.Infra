@@ -38,25 +38,40 @@ output "gateway_identity_client_id" {
   value       = azurerm_user_assigned_identity.gateway.client_id
 }
 
-# output "identity_url" {
-#   description = "Public URL of the Identity App Service"
-#   value       = "https://${azurerm_linux_web_app.identity.default_hostname}"
-# }
+output "bff_identity_client_id" {
+  description = "Client ID of the BFF user-assigned managed identity"
+  value       = azurerm_user_assigned_identity.bff.client_id
+}
 
-# output "identity_name" {
-#   description = "Name of the Identity App Service instance"
-#   value       = azurerm_linux_web_app.identity.name
-# }
+output "identity_url" {
+  description = "Public URL of the Identity App Service"
+  value       = "https://${azurerm_linux_web_app.identity.default_hostname}"
+}
 
-# output "storage_url" {
-#   description = "Public URL of the Storage Service App Service"
-#   value       = "https://${azurerm_linux_web_app.storage.default_hostname}"
-# }
+output "identity_name" {
+  description = "Name of the Identity App Service instance"
+  value       = azurerm_linux_web_app.identity.name
+}
 
-# output "storage_name" {
-#   description = "Name of the Storage Service App Service instance"
-#   value       = azurerm_linux_web_app.storage.name
-# }
+output "identity_identity_client_id" {
+  description = "Client ID of the Identity user-assigned managed identity"
+  value       = azurerm_user_assigned_identity.identity.client_id
+}
+
+output "storage_url" {
+  description = "Public URL of the Storage Service App Service"
+  value       = "https://${azurerm_linux_web_app.storage.default_hostname}"
+}
+
+output "storage_name" {
+  description = "Name of the Storage Service App Service instance"
+  value       = azurerm_linux_web_app.storage.name
+}
+
+output "storage_identity_client_id" {
+  description = "Client ID of the Storage Service user-assigned managed identity"
+  value       = azurerm_user_assigned_identity.storage.client_id
+}
 
 output "key_vault_uri" {
   description = "URI of the Key Vault"
