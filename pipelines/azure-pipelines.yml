@@ -128,12 +128,14 @@ stages:
               KV_URL=$(terraform output -raw key_vault_uri)
               RG=$(terraform output -raw resource_group_name)
               GW=$(terraform output -raw gateway_name)
+              GW_CLIENT_ID=$(terraform output -raw gateway_identity_client_id)
 
               az webapp config appsettings set \
                 --resource-group "$RG" \
                 --name "$GW" \
                 --settings \
-                  KeyVault__Url="$KV_URL"
+                  KeyVault__Url="$KV_URL" \
+                  AZURE_CLIENT_ID="$GW_CLIENT_ID"
             displayName: 'Configure gateway app settings (test)'
             workingDirectory: '$(TF_WORKING_DIR)'
             env:
@@ -262,12 +264,14 @@ stages:
               KV_URL=$(terraform output -raw key_vault_uri)
               RG=$(terraform output -raw resource_group_name)
               GW=$(terraform output -raw gateway_name)
+              GW_CLIENT_ID=$(terraform output -raw gateway_identity_client_id)
 
               az webapp config appsettings set \
                 --resource-group "$RG" \
                 --name "$GW" \
                 --settings \
-                  KeyVault__Url="$KV_URL"
+                  KeyVault__Url="$KV_URL" \
+                  AZURE_CLIENT_ID="$GW_CLIENT_ID"
             displayName: 'Configure gateway app settings (prod)'
             workingDirectory: '$(TF_WORKING_DIR)'
             env:

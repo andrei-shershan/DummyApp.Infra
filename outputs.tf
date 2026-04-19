@@ -33,6 +33,11 @@ output "gateway_name" {
   value       = azurerm_linux_web_app.gateway.name
 }
 
+output "gateway_identity_client_id" {
+  description = "Client ID of the gateway user-assigned managed identity"
+  value       = azurerm_user_assigned_identity.gateway.client_id
+}
+
 # output "identity_url" {
 #   description = "Public URL of the Identity App Service"
 #   value       = "https://${azurerm_linux_web_app.identity.default_hostname}"
