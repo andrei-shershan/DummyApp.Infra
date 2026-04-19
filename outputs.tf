@@ -23,15 +23,15 @@ output "bff_name" {
   value       = azurerm_linux_web_app.bff.name
 }
 
-# output "gateway_url" {
-#   description = "Public URL of the API Gateway App Service"
-#   value       = "https://${azurerm_linux_web_app.gateway.default_hostname}"
-# }
+output "gateway_url" {
+  description = "Public URL of the API Gateway App Service"
+  value       = "https://${azurerm_linux_web_app.gateway.default_hostname}"
+}
 
-# output "gateway_name" {
-#   description = "Name of the API Gateway App Service instance"
-#   value       = azurerm_linux_web_app.gateway.name
-# }
+output "gateway_name" {
+  description = "Name of the API Gateway App Service instance"
+  value       = azurerm_linux_web_app.gateway.name
+}
 
 # output "identity_url" {
 #   description = "Public URL of the Identity App Service"

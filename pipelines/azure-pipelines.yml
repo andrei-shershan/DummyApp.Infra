@@ -124,6 +124,28 @@ stages:
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
 
+          - script: |
+              KV_URL=$(terraform output -raw key_vault_uri)
+              RG=$(terraform output -raw resource_group_name)
+              GW=$(terraform output -raw gateway_name)
+
+              az webapp config appsettings set \
+                --resource-group "$RG" \
+                --name "$GW" \
+                --settings \
+                  KeyVault__Url="$KV_URL"
+            displayName: 'Configure gateway app settings (test)'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              AZURE_CLIENT_ID: $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              AZURE_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              AZURE_TENANT_ID: $(ARM_TENANT_ID)
+
 # ── PROD: Plan ────────────────────────────────
 - stage: Plan_Prod
   displayName: 'Plan - Prod'
@@ -235,4 +257,26 @@ stages:
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+          - script: |
+              KV_URL=$(terraform output -raw key_vault_uri)
+              RG=$(terraform output -raw resource_group_name)
+              GW=$(terraform output -raw gateway_name)
+
+              az webapp config appsettings set \
+                --resource-group "$RG" \
+                --name "$GW" \
+                --settings \
+                  KeyVault__Url="$KV_URL"
+            displayName: 'Configure gateway app settings (prod)'
+            workingDirectory: '$(TF_WORKING_DIR)'
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              AZURE_CLIENT_ID: $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              AZURE_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              AZURE_TENANT_ID: $(ARM_TENANT_ID)
 
