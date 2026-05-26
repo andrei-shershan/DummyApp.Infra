@@ -245,38 +245,51 @@ resource "azurerm_service_plan" "blobservice" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   os_type             = "Linux"
-  sku_name             = "F1"
+  sku_name            = "Y1"
 }
 
-resource "azurerm_linux_web_app" "blobservice" {
-  name                = "app-${local.prefix}-blobservice"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  service_plan_id     = azurerm_service_plan.blobservice.id
-  https_only          = true
+resource "azurerm_storage_account" "blobservice" {
+  name                            = lower("st${replace(local.prefix, "-", "")}blob")
+  resource_group_name             = azurerm_resource_group.main.name
+  location                        = azurerm_resource_group.main.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  account_kind                    = "StorageV2"
+  allow_nested_items_to_be_public = false
+  min_tls_version                 = "TLS1_2"
+}
+
+resource "azurerm_linux_function_app" "blobservice" {
+  name                       = "app-${local.prefix}-blobservice"
+  resource_group_name        = azurerm_resource_group.main.name
+  location                   = azurerm_resource_group.main.location
+  service_plan_id            = azurerm_service_plan.blobservice.id
+  storage_account_name       = azurerm_storage_account.blobservice.name
+  storage_account_access_key = azurerm_storage_account.blobservice.primary_access_key
 
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.blobservice.id]
   }
 
-  app_settings = {
-    KeyVault__Url = azurerm_key_vault.main.vault_uri
+  site_config {
+    application_stack {
+      dotnet_version              = "8.0"
+      use_dotnet_isolated_runtime = true
+    }
   }
+
+  app_settings = {
+    FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
+    WEBSITE_RUN_FROM_PACKAGE = "1"
+    KeyVault__Url            = azurerm_key_vault.main.vault_uri
+  }
+
+  https_only = true
 
   lifecycle {
     ignore_changes = [app_settings]
   }
-
-  site_config {
-    always_on = false
-
-    application_stack {
-      dotnet_version = var.dotnet_version
-    }
-  }
-
-  client_affinity_enabled = false
 }
 
 # ── Key Vault ─────────────────────────────────────────────────────────────────

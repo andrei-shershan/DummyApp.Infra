@@ -74,13 +74,13 @@ output "storage_identity_client_id" {
 }
 
 output "blobservice_url" {
-  description = "Public URL of the BlobService App Service"
-  value       = "https://${azurerm_linux_web_app.blobservice.default_hostname}"
+  description = "Public URL of the BlobService Function App"
+  value       = "https://${azurerm_linux_function_app.blobservice.default_hostname}"
 }
 
 output "blobservice_name" {
-  description = "Name of the BlobService App Service instance"
-  value       = azurerm_linux_web_app.blobservice.name
+  description = "Name of the BlobService Function App instance"
+  value       = azurerm_linux_function_app.blobservice.name
 }
 
 output "blobservice_identity_client_id" {
