@@ -73,6 +73,21 @@ output "storage_identity_client_id" {
   value       = azurerm_user_assigned_identity.storage.client_id
 }
 
+output "blobservice_url" {
+  description = "Public URL of the BlobService App Service"
+  value       = "https://${azurerm_linux_web_app.blobservice.default_hostname}"
+}
+
+output "blobservice_name" {
+  description = "Name of the BlobService App Service instance"
+  value       = azurerm_linux_web_app.blobservice.name
+}
+
+output "blobservice_identity_client_id" {
+  description = "Client ID of the BlobService user-assigned managed identity"
+  value       = azurerm_user_assigned_identity.blobservice.client_id
+}
+
 output "key_vault_uri" {
   description = "URI of the Key Vault"
   value       = azurerm_key_vault.main.vault_uri

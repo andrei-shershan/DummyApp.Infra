@@ -120,7 +120,11 @@ resource "azurerm_user_assigned_identity" "storage" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
 }
-
+resource "azurerm_user_assigned_identity" "blobservice" {
+  name                = "id-${local.prefix}-blobservice"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
 resource "azurerm_linux_web_app" "gateway" {
   name                = "app-${local.prefix}-gateway"
   resource_group_name = azurerm_resource_group.main.name
@@ -234,6 +238,47 @@ resource "azurerm_linux_web_app" "storage" {
   client_affinity_enabled = false
 }
 
+# ── BlobService ──────────────────────────────────────────────────────────────
+
+resource "azurerm_service_plan" "blobservice" {
+  name                = "asp-${local.prefix}-blobservice"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  os_type             = "Linux"
+  sku_name             = "F1"
+}
+
+resource "azurerm_linux_web_app" "blobservice" {
+  name                = "app-${local.prefix}-blobservice"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  service_plan_id     = azurerm_service_plan.blobservice.id
+  https_only          = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.blobservice.id]
+  }
+
+  app_settings = {
+    KeyVault__Url = azurerm_key_vault.main.vault_uri
+  }
+
+  lifecycle {
+    ignore_changes = [app_settings]
+  }
+
+  site_config {
+    always_on = false
+
+    application_stack {
+      dotnet_version = var.dotnet_version
+    }
+  }
+
+  client_affinity_enabled = false
+}
+
 # ── Key Vault ─────────────────────────────────────────────────────────────────
 
 resource "azurerm_key_vault" "main" {
@@ -270,6 +315,12 @@ resource "azurerm_role_assignment" "storage_kv_secrets_user" {
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_user_assigned_identity.storage.principal_id
+}
+
+resource "azurerm_role_assignment" "blobservice_kv_secrets_user" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.blobservice.principal_id
 }
 
 # Grant write access to manage secrets manually (Portal / CLI).
