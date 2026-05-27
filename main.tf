@@ -252,7 +252,7 @@ resource "azurerm_service_plan" "blobservice" {
   name                = "asp-${local.prefix}-blobsvc"
   resource_group_name = azurerm_resource_group.functions.name
   location            = azurerm_resource_group.functions.location
-  os_type             = "Linux"
+  os_type             = "Windows"
   sku_name            = "Y1"
 }
 
@@ -262,7 +262,7 @@ resource "azurerm_user_assigned_identity" "blobservice" {
   location            = azurerm_resource_group.functions.location
 }
 
-resource "azurerm_linux_function_app" "blobservice" {
+resource "azurerm_windows_function_app" "blobservice" {
   name                = "func-${local.prefix}-blobservice"
   resource_group_name = azurerm_resource_group.functions.name
   location            = azurerm_resource_group.functions.location
