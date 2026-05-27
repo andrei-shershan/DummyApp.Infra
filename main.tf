@@ -281,6 +281,8 @@ resource "azurerm_windows_function_app" "blobservice" {
     FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
     WEBSITE_RUN_FROM_PACKAGE = "1"
     KeyVault__Url            = azurerm_key_vault.main.vault_uri
+    BlobStorageUri           = azurerm_storage_account.blobservice.primary_blob_endpoint
+    AZURE_CLIENT_ID          = azurerm_user_assigned_identity.blobservice.client_id
   }
 
   site_config {
@@ -317,6 +319,19 @@ resource "azurerm_role_assignment" "bff_kv_secrets_user" {
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_user_assigned_identity.bff.principal_id
+}
+
+# Allow the BlobService identity to use the storage account (for both host storage and BlobServiceClient)
+resource "azurerm_role_assignment" "blobservice_storage_blob_contributor" {
+  scope                = azurerm_storage_account.blobservice.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.blobservice.principal_id
+}
+
+resource "azurerm_role_assignment" "blobservice_storage_account_contributor" {
+  scope                = azurerm_storage_account.blobservice.id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = azurerm_user_assigned_identity.blobservice.principal_id
 }
 
 resource "azurerm_role_assignment" "identity_kv_secrets_user" {
