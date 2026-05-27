@@ -285,7 +285,9 @@ resource "azurerm_windows_function_app" "blobservice" {
 
   site_config {
     application_stack {
-      dotnet_version              = var.dotnet_version
+      # azurerm_windows_function_app requires the "v" prefix (e.g. "v10.0"),
+      # whereas azurerm_linux_web_app expects the plain version (e.g. "10.0").
+      dotnet_version              = "v${var.dotnet_version}"
       use_dotnet_isolated_runtime = true
     }
   }
