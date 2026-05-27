@@ -10,6 +10,11 @@ resource "azurerm_resource_group" "main" {
   location = var.location
 }
 
+resource "azurerm_resource_group" "functions" {
+  name     = "rg-func-${local.env}"
+  location = var.location
+}
+
 resource "azurerm_service_plan" "frontend" {
   name                = "asp-${local.prefix}-fe"
   resource_group_name = azurerm_resource_group.main.name
@@ -117,11 +122,6 @@ resource "azurerm_user_assigned_identity" "identity" {
 
 resource "azurerm_user_assigned_identity" "storage" {
   name                = "id-${local.prefix}-storage"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-}
-resource "azurerm_user_assigned_identity" "blobservice" {
-  name                = "id-${local.prefix}-blobservice"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
 }
@@ -238,45 +238,43 @@ resource "azurerm_linux_web_app" "storage" {
   client_affinity_enabled = false
 }
 
-# ── BlobService ──────────────────────────────────────────────────────────────
+# ── BlobService Functions ─────────────────────────────────────────────────────────────────
+
+resource "azurerm_storage_account" "blobservice" {
+  name                     = "safunc${replace(local.prefix, "-", "")}blob"
+  resource_group_name      = azurerm_resource_group.functions.name
+  location                 = azurerm_resource_group.functions.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
 
 resource "azurerm_service_plan" "blobservice" {
-  name                = "asp-${local.prefix}-blobservice"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
+  name                = "asp-${local.prefix}-blobsvc"
+  resource_group_name = azurerm_resource_group.functions.name
+  location            = azurerm_resource_group.functions.location
   os_type             = "Linux"
   sku_name            = "Y1"
 }
 
-resource "azurerm_storage_account" "blobservice" {
-  name                            = lower("st${replace(local.prefix, "-", "")}blob")
-  resource_group_name             = azurerm_resource_group.main.name
-  location                        = azurerm_resource_group.main.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  account_kind                    = "StorageV2"
-  allow_nested_items_to_be_public = false
-  min_tls_version                 = "TLS1_2"
+resource "azurerm_user_assigned_identity" "blobservice" {
+  name                = "id-${local.prefix}-blobservice"
+  resource_group_name = azurerm_resource_group.functions.name
+  location            = azurerm_resource_group.functions.location
 }
 
 resource "azurerm_linux_function_app" "blobservice" {
-  name                       = "app-${local.prefix}-blobservice"
-  resource_group_name        = azurerm_resource_group.main.name
-  location                   = azurerm_resource_group.main.location
-  service_plan_id            = azurerm_service_plan.blobservice.id
-  storage_account_name       = azurerm_storage_account.blobservice.name
-  storage_account_access_key = azurerm_storage_account.blobservice.primary_access_key
+  name                = "func-${local.prefix}-blobservice"
+  resource_group_name = azurerm_resource_group.functions.name
+  location            = azurerm_resource_group.functions.location
+  service_plan_id     = azurerm_service_plan.blobservice.id
+  https_only          = true
+
+  storage_account_name          = azurerm_storage_account.blobservice.name
+  storage_uses_managed_identity = true
 
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.blobservice.id]
-  }
-
-  site_config {
-    application_stack {
-      dotnet_version              = "8.0"
-      use_dotnet_isolated_runtime = true
-    }
   }
 
   app_settings = {
@@ -285,10 +283,11 @@ resource "azurerm_linux_function_app" "blobservice" {
     KeyVault__Url            = azurerm_key_vault.main.vault_uri
   }
 
-  https_only = true
-
-  lifecycle {
-    ignore_changes = [app_settings]
+  site_config {
+    application_stack {
+      dotnet_version              = var.dotnet_version
+      use_dotnet_isolated_runtime = true
+    }
   }
 }
 
@@ -328,12 +327,6 @@ resource "azurerm_role_assignment" "storage_kv_secrets_user" {
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_user_assigned_identity.storage.principal_id
-}
-
-resource "azurerm_role_assignment" "blobservice_kv_secrets_user" {
-  scope                = azurerm_key_vault.main.id
-  role_definition_name = "Key Vault Secrets User"
-  principal_id         = azurerm_user_assigned_identity.blobservice.principal_id
 }
 
 # Grant write access to manage secrets manually (Portal / CLI).
