@@ -93,6 +93,21 @@ output "blobservice_identity_client_id" {
   value       = azurerm_user_assigned_identity.blobservice.client_id
 }
 
+output "emailservice_url" {
+  description = "Public URL of the EmailService Function App"
+  value       = "https://${azurerm_windows_function_app.emailservice.default_hostname}"
+}
+
+output "emailservice_name" {
+  description = "Name of the EmailService Function App instance"
+  value       = azurerm_windows_function_app.emailservice.name
+}
+
+output "emailservice_identity_client_id" {
+  description = "Client ID of the EmailService user-assigned managed identity"
+  value       = azurerm_user_assigned_identity.emailservice.client_id
+}
+
 output "key_vault_uri" {
   description = "URI of the Key Vault"
   value       = azurerm_key_vault.main.vault_uri

@@ -295,6 +295,78 @@ resource "azurerm_windows_function_app" "blobservice" {
   }
 }
 
+# ── EmailService Functions ─────────────────────────────────────────────────────────────────
+
+resource "azurerm_storage_account" "emailservice" {
+  name                     = "safunc${replace(local.prefix, "-", "")}email"
+  resource_group_name      = azurerm_resource_group.functions.name
+  location                 = azurerm_resource_group.functions.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_service_plan" "emailservice" {
+  name                = "asp-${local.prefix}-emailsvc"
+  resource_group_name = azurerm_resource_group.functions.name
+  location            = azurerm_resource_group.functions.location
+  os_type             = "Windows"
+  sku_name            = "Y1"
+}
+
+resource "azurerm_user_assigned_identity" "emailservice" {
+  name                = "id-${local.prefix}-emailservice"
+  resource_group_name = azurerm_resource_group.functions.name
+  location            = azurerm_resource_group.functions.location
+}
+
+resource "azurerm_windows_function_app" "emailservice" {
+  name                = "func-${local.prefix}-emailservice"
+  resource_group_name = azurerm_resource_group.functions.name
+  location            = azurerm_resource_group.functions.location
+  service_plan_id     = azurerm_service_plan.emailservice.id
+  https_only          = true
+
+  storage_account_name          = azurerm_storage_account.emailservice.name
+  storage_uses_managed_identity = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.emailservice.id]
+  }
+
+  app_settings = {
+    FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
+    WEBSITE_RUN_FROM_PACKAGE = "1"
+    KeyVault__Url            = azurerm_key_vault.main.vault_uri
+    AZURE_CLIENT_ID          = azurerm_user_assigned_identity.emailservice.client_id
+  }
+
+  site_config {
+    application_stack {
+      dotnet_version              = "v${var.dotnet_version}"
+      use_dotnet_isolated_runtime = true
+    }
+  }
+}
+
+resource "azurerm_role_assignment" "emailservice_storage_blob_contributor" {
+  scope                = azurerm_storage_account.emailservice.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.emailservice.principal_id
+}
+
+resource "azurerm_role_assignment" "emailservice_storage_account_contributor" {
+  scope                = azurerm_storage_account.emailservice.id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = azurerm_user_assigned_identity.emailservice.principal_id
+}
+
+resource "azurerm_role_assignment" "emailservice_kv_secrets_user" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.emailservice.principal_id
+}
+
 # ── Key Vault ─────────────────────────────────────────────────────────────────
 
 resource "azurerm_key_vault" "main" {
