@@ -427,6 +427,18 @@ resource "azurerm_role_assignment" "paymentservice_kv_secrets_user" {
   principal_id         = azurerm_user_assigned_identity.paymentservice.principal_id
 }
 
+resource "azurerm_role_assignment" "paymentservice_storage_blob_contributor" {
+  scope                = azurerm_storage_account.paymentservice.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.paymentservice.principal_id
+}
+
+resource "azurerm_role_assignment" "paymentservice_storage_account_contributor" {
+  scope                = azurerm_storage_account.paymentservice.id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = azurerm_user_assigned_identity.paymentservice.principal_id
+}
+
 # ── Key Vault ─────────────────────────────────────────────────────────────────
 
 resource "azurerm_key_vault" "main" {
