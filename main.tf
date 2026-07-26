@@ -370,7 +370,7 @@ resource "azurerm_role_assignment" "emailservice_kv_secrets_user" {
 # ── PaymentService Functions ─────────────────────────────────────────────────────────────────
 
 resource "azurerm_storage_account" "paymentservice" {
-  name                     = "safunc${replace(local.prefix, "-", "")}payment"
+  name                     = "safunc${replace(local.prefix, "-", "")}pay"
   resource_group_name      = azurerm_resource_group.functions.name
   location                 = azurerm_resource_group.functions.location
   account_tier             = "Standard"
