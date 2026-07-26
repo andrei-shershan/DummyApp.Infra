@@ -108,6 +108,21 @@ output "emailservice_identity_client_id" {
   value       = azurerm_user_assigned_identity.emailservice.client_id
 }
 
+output "paymentservice_url" {
+  description = "Public URL of the PaymentService Function App"
+  value       = "https://${azurerm_windows_function_app.paymentservice.default_hostname}"
+}
+
+output "paymentservice_name" {
+  description = "Name of the PaymentService Function App instance"
+  value       = azurerm_windows_function_app.paymentservice.name
+}
+
+output "paymentservice_identity_client_id" {
+  description = "Client ID of the PaymentService user-assigned managed identity"
+  value       = azurerm_user_assigned_identity.paymentservice.client_id
+}
+
 output "key_vault_uri" {
   description = "URI of the Key Vault"
   value       = azurerm_key_vault.main.vault_uri
