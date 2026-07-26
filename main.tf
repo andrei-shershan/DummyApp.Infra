@@ -367,6 +367,66 @@ resource "azurerm_role_assignment" "emailservice_kv_secrets_user" {
   principal_id         = azurerm_user_assigned_identity.emailservice.principal_id
 }
 
+# ── PaymentService Functions ─────────────────────────────────────────────────────────────────
+
+resource "azurerm_storage_account" "paymentservice" {
+  name                     = "safunc${replace(local.prefix, "-", "")}payment"
+  resource_group_name      = azurerm_resource_group.functions.name
+  location                 = azurerm_resource_group.functions.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_service_plan" "paymentservice" {
+  name                = "asp-${local.prefix}-paymentsvc"
+  resource_group_name = azurerm_resource_group.functions.name
+  location            = azurerm_resource_group.functions.location
+  os_type             = "Windows"
+  sku_name            = "Y1"
+}
+
+resource "azurerm_user_assigned_identity" "paymentservice" {
+  name                = "id-${local.prefix}-paymentservice"
+  resource_group_name = azurerm_resource_group.functions.name
+  location            = azurerm_resource_group.functions.location
+}
+
+resource "azurerm_windows_function_app" "paymentservice" {
+  name                = "func-${local.prefix}-paymentservice"
+  resource_group_name = azurerm_resource_group.functions.name
+  location            = azurerm_resource_group.functions.location
+  service_plan_id     = azurerm_service_plan.paymentservice.id
+  https_only          = true
+
+  storage_account_name          = azurerm_storage_account.paymentservice.name
+  storage_uses_managed_identity = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.paymentservice.id]
+  }
+
+  app_settings = {
+    FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
+    WEBSITE_RUN_FROM_PACKAGE = "1"
+    KeyVault__Url            = azurerm_key_vault.main.vault_uri
+    AZURE_CLIENT_ID          = azurerm_user_assigned_identity.paymentservice.client_id
+  }
+
+  site_config {
+    application_stack {
+      dotnet_version              = "v${var.dotnet_version}"
+      use_dotnet_isolated_runtime = true
+    }
+  }
+}
+
+resource "azurerm_role_assignment" "paymentservice_kv_secrets_user" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.paymentservice.principal_id
+}
+
 # ── Key Vault ─────────────────────────────────────────────────────────────────
 
 resource "azurerm_key_vault" "main" {
