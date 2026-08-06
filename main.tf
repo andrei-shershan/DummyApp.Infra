@@ -465,11 +465,11 @@ resource "azurerm_servicebus_namespace" "main" {
 resource "azurerm_servicebus_queue" "payment_events" {
   name          = var.servicebus_queue_name
   namespace_id  = azurerm_servicebus_namespace.main.id
-  enable_partitioning = false
+  partitioning_enabled = false
   max_size_in_megabytes = 1024
   lock_duration          = "PT30S"
   requires_duplicate_detection = false
-  default_message_time_to_live = "P14D"
+  default_message_ttl = "P14D"
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "payment_events_sender" {
