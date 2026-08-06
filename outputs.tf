@@ -132,3 +132,18 @@ output "key_vault_name" {
   description = "Name of the Key Vault"
   value       = azurerm_key_vault.main.name
 }
+
+output "servicebus_namespace_name" {
+  description = "Name of the Service Bus namespace"
+  value       = azurerm_servicebus_namespace.main.name
+}
+
+output "servicebus_queue_name" {
+  description = "Name of the Service Bus queue"
+  value       = azurerm_servicebus_queue.payment_events.name
+}
+
+output "servicebus_authorization_rule_name" {
+  description = "Authorization rule name for Service Bus sender"
+  value       = azurerm_servicebus_namespace_authorization_rule.payment_events_sender.name
+}

@@ -452,6 +452,40 @@ resource "azurerm_key_vault" "main" {
   rbac_authorization_enabled = true
 }
 
+# ── ServiceBus ─────────────────────────────────────────────────────────────────
+
+
+resource "azurerm_servicebus_namespace" "main" {
+  name                = "sb-${local.prefix}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = var.servicebus_sku
+}
+
+resource "azurerm_servicebus_queue" "payment_events" {
+  name          = var.servicebus_queue_name
+  namespace_id  = azurerm_servicebus_namespace.main.id
+  enable_partitioning = false
+  max_size_in_megabytes = 1024
+  lock_duration          = "PT30S"
+  requires_duplicate_detection = false
+  default_message_time_to_live = "P14D"
+}
+
+resource "azurerm_servicebus_namespace_authorization_rule" "payment_events_sender" {
+  name         = "send-rule"
+  namespace_id = azurerm_servicebus_namespace.main.id
+  listen       = true
+  send         = true
+  manage       = false
+}
+
+resource "azurerm_key_vault_secret" "servicebus_connection_string" {
+  name         = "ServiceBus-PaymentConnectionString"
+  value        = azurerm_servicebus_namespace_authorization_rule.payment_events_sender.primary_connection_string
+  key_vault_id = azurerm_key_vault.main.id
+}
+
 # Grant the ApiGateway managed identity read access to Key Vault secrets
 resource "azurerm_role_assignment" "gateway_kv_secrets_user" {
   scope                = azurerm_key_vault.main.id
