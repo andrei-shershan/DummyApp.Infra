@@ -481,7 +481,7 @@ resource "azurerm_servicebus_namespace_authorization_rule" "payment_events_sende
 }
 
 resource "azurerm_key_vault_secret" "servicebus_connection_string" {
-  name         = "ServiceBus--PaymentConnectionString"
+  name         = "ServiceBus--ConnectionString"
   value        = azurerm_servicebus_namespace_authorization_rule.payment_events_sender.primary_connection_string
   key_vault_id = azurerm_key_vault.main.id
 }
