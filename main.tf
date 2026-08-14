@@ -439,6 +439,79 @@ resource "azurerm_role_assignment" "paymentservice_storage_account_contributor" 
   principal_id         = azurerm_user_assigned_identity.paymentservice.principal_id
 }
 
+# ── FileService Functions ─────────────────────────────────────────────────────────────────
+
+
+resource "azurerm_storage_account" "fileservice" {
+  name                     = "safunc${replace(local.prefix, "-", "")}file"
+  resource_group_name      = azurerm_resource_group.functions.name
+  location                 = azurerm_resource_group.functions.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_service_plan" "fileservice" {
+  name                = "asp-${local.prefix}-filesvc"
+  resource_group_name = azurerm_resource_group.functions.name
+  location            = azurerm_resource_group.functions.location
+  os_type             = "Windows"
+  sku_name            = "Y1"
+}
+
+resource "azurerm_user_assigned_identity" "fileservice" {
+  name                = "id-${local.prefix}-fileservice"
+  resource_group_name = azurerm_resource_group.functions.name
+  location            = azurerm_resource_group.functions.location
+}
+
+resource "azurerm_windows_function_app" "fileservice" {
+  name                = "func-${local.prefix}-fileservice"
+  resource_group_name = azurerm_resource_group.functions.name
+  location            = azurerm_resource_group.functions.location
+  service_plan_id     = azurerm_service_plan.fileservice.id
+  https_only          = true
+
+  storage_account_name          = azurerm_storage_account.fileservice.name
+  storage_uses_managed_identity = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.fileservice.id]
+  }
+
+  app_settings = {
+    FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
+    WEBSITE_RUN_FROM_PACKAGE = "1"
+    KeyVault__Url            = azurerm_key_vault.main.vault_uri
+    AZURE_CLIENT_ID          = azurerm_user_assigned_identity.fileservice.client_id
+  }
+
+  site_config {
+    application_stack {
+      dotnet_version              = "v${var.dotnet_version}"
+      use_dotnet_isolated_runtime = true
+    }
+  }
+}
+
+resource "azurerm_role_assignment" "fileservice_kv_secrets_user" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.fileservice.principal_id
+}
+
+resource "azurerm_role_assignment" "fileservice_storage_blob_contributor" {
+  scope                = azurerm_storage_account.fileservice.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.fileservice.principal_id
+}
+
+resource "azurerm_role_assignment" "fileservice_storage_account_contributor" {
+  scope                = azurerm_storage_account.fileservice.id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = azurerm_user_assigned_identity.fileservice.principal_id
+}
+
 # ── Key Vault ─────────────────────────────────────────────────────────────────
 
 resource "azurerm_key_vault" "main" {

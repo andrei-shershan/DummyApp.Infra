@@ -108,6 +108,21 @@ output "emailservice_identity_client_id" {
   value       = azurerm_user_assigned_identity.emailservice.client_id
 }
 
+output "fileservice_url" {
+  description = "Public URL of the FileService Function App"
+  value       = "https://${azurerm_windows_function_app.fileservice.default_hostname}"
+}
+
+output "fileservice_name" {
+  description = "Name of the FileService Function App instance"
+  value       = azurerm_windows_function_app.fileservice.name
+}
+
+output "fileservice_identity_client_id" {
+  description = "Client ID of the FileService user-assigned managed identity"
+  value       = azurerm_user_assigned_identity.fileservice.client_id
+}
+
 output "paymentservice_url" {
   description = "Public URL of the PaymentService Function App"
   value       = "https://${azurerm_windows_function_app.paymentservice.default_hostname}"
