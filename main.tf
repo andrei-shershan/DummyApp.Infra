@@ -536,7 +536,17 @@ resource "azurerm_servicebus_namespace" "main" {
 }
 
 resource "azurerm_servicebus_queue" "payment_events" {
-  name          = var.servicebus_queue_name
+  name          = var.servicebus_payments_queue_name
+  namespace_id  = azurerm_servicebus_namespace.main.id
+  partitioning_enabled = false
+  max_size_in_megabytes = 1024
+  lock_duration          = "PT30S"
+  requires_duplicate_detection = false
+  default_message_ttl = "P14D"
+}
+
+resource "azurerm_servicebus_queue" "completed_order_events" {
+  name          = var.servicebus_completed_order_queue_name
   namespace_id  = azurerm_servicebus_namespace.main.id
   partitioning_enabled = false
   max_size_in_megabytes = 1024
