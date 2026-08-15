@@ -28,10 +28,16 @@ variable "servicebus_sku" {
   default     = "Basic"
 }
 
-variable "servicebus_queue_name" {
+variable "servicebus_payments_queue_name" {
   type        = string
   description = "Service Bus queue name for payment events"
   default     = "payment-events"
+}
+
+variable "servicebus_completed_order_queue_name" {
+  type        = string
+  description = "Service Bus queue name for completed order events"
+  default     = "completed-order-events"
 }
 
 variable "kv_admin_object_id" {

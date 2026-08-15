@@ -153,9 +153,14 @@ output "servicebus_namespace_name" {
   value       = azurerm_servicebus_namespace.main.name
 }
 
-output "servicebus_queue_name" {
-  description = "Name of the Service Bus queue"
+output "servicebus_payments_queue_name" {
+  description = "Name of the Service Bus payment queue"
   value       = azurerm_servicebus_queue.payment_events.name
+}
+
+output "servicebus_completed_order_queue_name" {
+  description = "Name of the Service Bus completed order queue"
+  value       = azurerm_servicebus_queue.completed_order_events.name
 }
 
 output "servicebus_authorization_rule_name" {
