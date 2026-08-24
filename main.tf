@@ -15,6 +15,31 @@ resource "azurerm_resource_group" "functions" {
   location = var.location
 }
 
+resource "azurerm_resource_group" "storage" {
+  name     = "rg-storage-${local.env}"
+  location = var.location
+}
+
+resource "azurerm_storage_account" "storage" {
+  name                        = "sa${replace(local.prefix, "-", "")}storage"
+  resource_group_name         = azurerm_resource_group.storage.name
+  location                    = azurerm_resource_group.storage.location
+  account_tier                = "Standard"
+  account_replication_type    = "LRS"
+  account_kind                = "StorageV2"
+  access_tier                 = "Hot"
+  allow_blob_public_access    = true
+  supports_https_traffic_only = true
+}
+
+resource "azurerm_storage_container" "storage_containers" {
+  for_each = toset(var.blob_storage_container_names)
+
+  name                  = each.key
+  storage_account_name  = azurerm_storage_account.storage.name
+  container_access_type = "blob"
+}
+
 resource "azurerm_service_plan" "frontend" {
   name                = "asp-${local.prefix}-fe"
   resource_group_name = azurerm_resource_group.main.name
@@ -536,23 +561,23 @@ resource "azurerm_servicebus_namespace" "main" {
 }
 
 resource "azurerm_servicebus_queue" "payment_events" {
-  name          = var.servicebus_payments_queue_name
-  namespace_id  = azurerm_servicebus_namespace.main.id
-  partitioning_enabled = false
-  max_size_in_megabytes = 1024
-  lock_duration          = "PT30S"
+  name                         = var.servicebus_payments_queue_name
+  namespace_id                 = azurerm_servicebus_namespace.main.id
+  partitioning_enabled         = false
+  max_size_in_megabytes        = 1024
+  lock_duration                = "PT30S"
   requires_duplicate_detection = false
-  default_message_ttl = "P14D"
+  default_message_ttl          = "P14D"
 }
 
 resource "azurerm_servicebus_queue" "completed_order_events" {
-  name          = var.servicebus_completed_order_queue_name
-  namespace_id  = azurerm_servicebus_namespace.main.id
-  partitioning_enabled = false
-  max_size_in_megabytes = 1024
-  lock_duration          = "PT30S"
+  name                         = var.servicebus_completed_order_queue_name
+  namespace_id                 = azurerm_servicebus_namespace.main.id
+  partitioning_enabled         = false
+  max_size_in_megabytes        = 1024
+  lock_duration                = "PT30S"
   requires_duplicate_detection = false
-  default_message_ttl = "P14D"
+  default_message_ttl          = "P14D"
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "payment_events_sender" {

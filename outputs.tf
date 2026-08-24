@@ -53,6 +53,21 @@ output "identity_url" {
   value       = "https://${azurerm_linux_web_app.identity.default_hostname}"
 }
 
+output "storage_resource_group_name" {
+  description = "Name of the separate storage resource group"
+  value       = azurerm_resource_group.storage.name
+}
+
+output "storage_account_name" {
+  description = "Name of the separate storage account for blob containers"
+  value       = azurerm_storage_account.storage.name
+}
+
+output "storage_container_names" {
+  description = "List of blob container names created in the storage account"
+  value       = var.blob_storage_container_names
+}
+
 output "identity_name" {
   description = "Name of the Identity App Service instance"
   value       = azurerm_linux_web_app.identity.name

@@ -45,3 +45,9 @@ variable "kv_admin_object_id" {
   description = "Object ID of the user or group that can manage Key Vault secrets manually (e.g. add/update secrets via Portal or CLI). Defaults to the Terraform principal."
   default     = ""
 }
+
+variable "blob_storage_container_names" {
+  type        = list(string)
+  description = "Blob storage container names to create in the separate storage account."
+  default     = ["artworks", "avatars"]
+}
