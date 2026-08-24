@@ -28,7 +28,7 @@ resource "azurerm_storage_account" "storage" {
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
   access_tier              = "Hot"
-  enable_https_traffic_only = true
+  https_traffic_only_enabled = true
 }
 
 resource "azurerm_storage_container" "storage_containers" {
