@@ -20,6 +20,11 @@ resource "azurerm_resource_group" "storage" {
   location = var.location
 }
 
+resource "azurerm_resource_group" "cosmos" {
+  name     = "cosmos-${local.env}-rg"
+  location = var.location
+}
+
 resource "azurerm_storage_account" "storage" {
   name                     = "sa${replace(local.prefix, "-", "") }storage"
   resource_group_name      = azurerm_resource_group.storage.name
@@ -552,7 +557,7 @@ resource "azurerm_key_vault" "main" {
 resource "azurerm_cosmosdb_account" "main" {
   name                = "cosmos${replace(local.prefix, "-", "") }"
   location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+  resource_group_name = azurerm_resource_group.cosmos.name
   offer_type          = var.cosmosdb_offer_type
   kind                = var.cosmosdb_kind
 
