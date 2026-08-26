@@ -549,6 +549,34 @@ resource "azurerm_key_vault" "main" {
   rbac_authorization_enabled = true
 }
 
+resource "azurerm_cosmosdb_account" "main" {
+  name                = "cosmos${replace(local.prefix, "-", "") }"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  offer_type          = var.cosmosdb_offer_type
+  kind                = var.cosmosdb_kind
+
+  consistency_policy {
+    consistency_level = var.cosmosdb_consistency_level
+  }
+
+  capabilities {
+    name = "EnableServerless"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.main.location
+    failover_priority = 0
+    zone_redundancy_enabled = false
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "main" {
+  name                = var.cosmosdb_sql_database_name
+  resource_group_name = azurerm_resource_group.main.name
+  account_name        = azurerm_cosmosdb_account.main.name
+}
+
 # ── ServiceBus ─────────────────────────────────────────────────────────────────
 
 

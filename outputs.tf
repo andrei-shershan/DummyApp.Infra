@@ -182,3 +182,18 @@ output "servicebus_authorization_rule_name" {
   description = "Authorization rule name for Service Bus sender"
   value       = azurerm_servicebus_namespace_authorization_rule.payment_events_sender.name
 }
+
+output "cosmosdb_account_name" {
+  description = "Name of the Cosmos DB account"
+  value       = azurerm_cosmosdb_account.main.name
+}
+
+output "cosmosdb_account_endpoint" {
+  description = "Endpoint URL of the Cosmos DB account"
+  value       = azurerm_cosmosdb_account.main.endpoint
+}
+
+output "cosmosdb_sql_database_name" {
+  description = "Name of the Cosmos DB SQL database"
+  value       = azurerm_cosmosdb_sql_database.main.name
+}
