@@ -20,6 +20,11 @@ resource "azurerm_resource_group" "storage" {
   location = var.location
 }
 
+resource "azurerm_resource_group" "cosmos" {
+  name     = "cosmos-${local.env}-rg"
+  location = var.location
+}
+
 resource "azurerm_storage_account" "storage" {
   name                     = "sa${replace(local.prefix, "-", "") }storage"
   resource_group_name      = azurerm_resource_group.storage.name
@@ -547,6 +552,33 @@ resource "azurerm_key_vault" "main" {
   soft_delete_retention_days = 7
   purge_protection_enabled   = false
   rbac_authorization_enabled = true
+}
+
+resource "azurerm_cosmosdb_account" "main" {
+  name                = "cosmos${replace(local.prefix, "-", "") }"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.cosmos.name
+  offer_type          = var.cosmosdb_offer_type
+  kind                = var.cosmosdb_kind
+
+  consistency_policy {
+    consistency_level = var.cosmosdb_consistency_level
+  }
+
+  capabilities {
+    name = "EnableServerless"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.cosmos.location
+    failover_priority = 0
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "main" {
+  name                = var.cosmosdb_sql_database_name
+  resource_group_name = azurerm_resource_group.cosmos.name
+  account_name        = azurerm_cosmosdb_account.main.name
 }
 
 # ── ServiceBus ─────────────────────────────────────────────────────────────────

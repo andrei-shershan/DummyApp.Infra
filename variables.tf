@@ -34,6 +34,30 @@ variable "servicebus_payments_queue_name" {
   default     = "payment-events"
 }
 
+variable "cosmosdb_offer_type" {
+  type        = string
+  description = "Cosmos DB account offer type"
+  default     = "Standard"
+}
+
+variable "cosmosdb_kind" {
+  type        = string
+  description = "Cosmos DB API kind"
+  default     = "GlobalDocumentDB"
+}
+
+variable "cosmosdb_consistency_level" {
+  type        = string
+  description = "Cosmos DB consistency level"
+  default     = "Session"
+}
+
+variable "cosmosdb_sql_database_name" {
+  type        = string
+  description = "Name of the Cosmos DB SQL database"
+  default     = "dummyappdb"
+}
+
 variable "servicebus_completed_order_queue_name" {
   type        = string
   description = "Service Bus queue name for completed order events"
