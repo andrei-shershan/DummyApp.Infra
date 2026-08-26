@@ -570,15 +570,14 @@ resource "azurerm_cosmosdb_account" "main" {
   }
 
   geo_location {
-    location          = azurerm_resource_group.main.location
+    location          = azurerm_resource_group.cosmos.location
     failover_priority = 0
-    zone_redundancy_enabled = false
   }
 }
 
 resource "azurerm_cosmosdb_sql_database" "main" {
   name                = var.cosmosdb_sql_database_name
-  resource_group_name = azurerm_resource_group.main.name
+  resource_group_name = azurerm_resource_group.cosmos.name
   account_name        = azurerm_cosmosdb_account.main.name
 }
 
