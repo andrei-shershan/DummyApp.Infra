@@ -153,6 +153,21 @@ output "paymentservice_identity_client_id" {
   value       = azurerm_user_assigned_identity.paymentservice.client_id
 }
 
+output "analytics_url" {
+  description = "Public URL of the Analytics Function App"
+  value       = "https://${azurerm_windows_function_app.analytics.default_hostname}"
+}
+
+output "analytics_name" {
+  description = "Name of the Analytics Function App instance"
+  value       = azurerm_windows_function_app.analytics.name
+}
+
+output "analytics_identity_client_id" {
+  description = "Client ID of the Analytics user-assigned managed identity"
+  value       = azurerm_user_assigned_identity.analytics.client_id
+}
+
 output "key_vault_uri" {
   description = "URI of the Key Vault"
   value       = azurerm_key_vault.main.vault_uri
