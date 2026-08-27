@@ -544,7 +544,7 @@ resource "azurerm_role_assignment" "fileservice_storage_account_contributor" {
 # ── Analytics Functions ────────────────────────────────────────────────────────
 
 resource "azurerm_storage_account" "analytics" {
-  name                     = "safunc${replace(local.prefix, "-", "")}analytics"
+  name                     = "safunc${replace(local.prefix, "-", "")}anlt"
   resource_group_name      = azurerm_resource_group.functions.name
   location                 = azurerm_resource_group.functions.location
   account_tier             = "Standard"
